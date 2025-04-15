@@ -1,9 +1,17 @@
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
 public class Product {
-    private String ID;           // static
+    private String ID;
     private String name;
     private String description;
     private double cost;
 
+    public static final int NAME_LENGTH = 35;
+    public static final int DESC_LENGTH = 75;
+    public static final int ID_LENGTH = 6;
+
+    public static final int RECORD_SIZE = (NAME_LENGTH + DESC_LENGTH + ID_LENGTH) * 2 + 8; // 2 bytes per char, 8 for double
 
     public Product(String ID, String name, String description, double cost) {
         this.ID = ID;
@@ -12,119 +20,72 @@ public class Product {
         this.cost = cost;
     }
 
-    /**
-     * Returns the ID of the person obj
-     *
-     * @return ID as str value.
-     */
+    private static String padString(String str, int length) {
+        if (str.length() > length) return str.substring(0, length);
+        return String.format("%-" + length + "s", str);
+    }
+
+    public void writeToRandomAccessFile(RandomAccessFile raf) throws IOException {
+        raf.writeChars(padString(name, NAME_LENGTH));
+        raf.writeChars(padString(description, DESC_LENGTH));
+        raf.writeChars(padString(ID, ID_LENGTH));
+        raf.writeDouble(cost);
+    }
+
+    public static Product readFromRandomAccessFile(RandomAccessFile raf) throws IOException {
+        StringBuilder name = new StringBuilder();
+        for (int i = 0; i < NAME_LENGTH; i++) name.append(raf.readChar());
+
+        StringBuilder desc = new StringBuilder();
+        for (int i = 0; i < DESC_LENGTH; i++) desc.append(raf.readChar());
+
+        StringBuilder id = new StringBuilder();
+        for (int i = 0; i < ID_LENGTH; i++) id.append(raf.readChar());
+
+        double cost = raf.readDouble();
+
+        return new Product(id.toString().trim(), name.toString().trim(), desc.toString().trim(), cost);
+    }
+
     public String getID() {
         return ID;
     }
 
-    /**
-     * Returns the Name of the person obj
-     *
-     * @return Name as str value.
-     */
     public String getName() {
         return name;
     }
 
-    /**
-     * Sets the name Value
-     *
-     * @param name str value
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * Returns the description of the person obj
-     *
-     * @return Description as str value.
-     */
     public String getDescription() {
         return description;
     }
 
-    /**
-     * Sets the description Value
-     *
-     * @param description str value
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    /**
-     * Returns the cost of the person obj
-     *
-     * @return cost as double value.
-     */
     public double getCost() {
         return cost;
     }
 
-    /**
-     * Sets the cost Value
-     *
-     * @param cost double value
-     */
-    public void setCost(double cost) {
-        this.cost = cost;
-    }
-
-    /**
-     * Produces a str representation of the product object.
-     *
-     * @return Product object as a CSV format.
-     */
     @Override
     public String toString() {
-        return "Product{" +
-                "ID='" + ID + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", cost=" + cost +
-                '}';
+        return String.format("Product[ID='%s', Name='%s', Desc='%s', Cost=%.2f]", ID, name, description, cost);
     }
 
-    /**
-     * Produces a CSV representation of the product object.
-     *
-     * @return Product object as a CSV format.
-     */
     public String toCSV() {
-        return String.format("%s, %s, %s, %.2f",
-                ID, name, description, cost);
+        return String.format("%s,%s,%s,%.2f", ID, name, description, cost);
     }
 
-
-    /**
-     * Produces a JSON-formatted string of the product obj.
-     *
-     * @return Product object in JSON format.
-     */
     public String toJSON() {
-        return String.format("{\"ID\":\"%s\",\"name\":\"%s\",\"description\":\"%s\",\"cost\":%.2f}",
+        return String.format("{\"ID\":\"%s\",\"Name\":\"%s\",\"Description\":\"%s\",\"Cost\":%.2f}",
                 ID, name, description, cost);
     }
 
-    /**
-     * Produces an XML-formatted string of the product obj.
-     *
-     * @return Product object in XML format.
-     */
     public String toXML() {
-        return String.format("<Product>" +
-                "<ID>%s</ID>" +
-                "<Name>%s</Name>" +
-                "<Description>%s</Description>" +
-                "<Cost>%.2f</Cost>" +
-                "</Product>", ID, name, description, cost);
+        return String.format(
+                "<Product>" +
+                        "<ID>%s</ID>" +
+                        "<Name>%s</Name>" +
+                        "<Description>%s</Description>" +
+                        "<Cost>%.2f</Cost>" +
+                        "</Product>",
+                ID, name, description, cost
+        );
     }
-
-
-
 }

@@ -1,0 +1,2 @@
+000001, Sting, Elven Short Sword, 8145.10
+000002, The One Ring, A Ring, 9998.99
